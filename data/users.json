@@ -1,0 +1,99 @@
+[
+    {
+        "id": "6e2cc408-46b7-4a08-8bba-f2e7dad9096a",
+        "email": "tiwarinaitik9@gmail.com",
+        "password_hash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+        "full_name": "Naitik Tiwari",
+        "user_type": "property owner",
+        "kyc_verified": false,
+        "created_at": "2025-03-30T08:15:20.643121",
+        "wallet_address": "0x74168FBAD1a3fC715F60E8b12fc6B29E074C89b6",
+        "profile_image": null,
+        "kyc_documents": [],
+        "wallet_private_key": "0xeb5e35c1ecab3e8787609676675e3978eace9f578bc6c6aef13c835152f3a392"
+    },
+    {
+        "id": "c0f94c13-dafe-496b-840d-470a3179363f",
+        "email": "kb@kb.com",
+        "password_hash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+        "full_name": "KB",
+        "user_type": "property owner",
+        "kyc_verified": false,
+        "created_at": "2025-03-30T08:27:10.000542",
+        "wallet_address": null,
+        "profile_image": null,
+        "kyc_documents": []
+    },
+    {
+        "id": "1c6cbb6c-9f6f-4d54-b18e-08477d1592c4",
+        "email": "kb@tp.com",
+        "password_hash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+        "full_name": "kbkb",
+        "user_type": "property owner",
+        "kyc_verified": false,
+        "created_at": "2025-03-30T08:30:50.645064",
+        "wallet_address": null,
+        "profile_image": null,
+        "kyc_documents": []
+    },
+    {
+        "id": "4d1d4642-6abf-496c-b0b0-97ecb5274042",
+        "email": "kg@pb.com",
+        "password_hash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+        "full_name": "KG",
+        "user_type": "renter",
+        "kyc_verified": false,
+        "created_at": "2025-03-30T08:50:51.138452",
+        "wallet_address": null,
+        "profile_image": null,
+        "kyc_documents": []
+    },
+    {
+        "id": "5cb0896b-6c69-44b4-928f-80cfe36e9e40",
+        "email": "DS@ID.com",
+        "password_hash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+        "full_name": "DS",
+        "user_type": "property owner",
+        "kyc_verified": false,
+        "created_at": "2025-03-30T09:09:50.612051",
+        "wallet_address": null,
+        "profile_image": null,
+        "kyc_documents": []
+    },
+    {
+        "id": "a13b000a-de60-4676-869a-fa1da63d6d79",
+        "email": "testadmin@gmail.com",
+        "password_hash": "f56c1489304ffacc21066e3fd55529f8aeb93075f2f96b7c2d7c8d22ae70dc7e",
+        "full_name": "Test Admin",
+        "user_type": "renter",
+        "kyc_verified": false,
+        "created_at": "2025-03-30T09:24:27.030087",
+        "wallet_address": null,
+        "profile_image": null,
+        "kyc_documents": []
+    },
+    {
+        "id": "d322cb00-63f4-419f-8fc7-26e5829acc3e",
+        "email": "testlend@gmail.com",
+        "password_hash": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+        "full_name": "testlend",
+        "user_type": "property owner",
+        "kyc_verified": false,
+        "created_at": "2025-03-30T09:36:06.302861",
+        "wallet_address": null,
+        "profile_image": null,
+        "kyc_documents": []
+    },
+    {
+        "id": "40650f8e-5c31-4f29-acf3-dd3c3e76e403",
+        "email": "test@test.test",
+        "password_hash": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+        "full_name": "test",
+        "user_type": "property owner",
+        "kyc_verified": false,
+        "created_at": "2025-03-30T09:50:11.331040",
+        "wallet_address": null,
+        "profile_image": null,
+        "kyc_documents": []
+    }
+]
