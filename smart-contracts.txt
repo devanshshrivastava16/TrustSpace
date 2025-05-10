@@ -1,0 +1,239 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+// RentalAgreement.sol
+contract RentalAgreement {
+    struct Agreement {
+        bytes32 propertyId;
+        address owner;
+        address renter;
+        uint256 startDate;
+        uint256 endDate;
+        uint256 dailyRate;
+        bool isActive;
+        bool isCompleted;
+        bool isCancelled;
+    }
+    
+    mapping(uint256 => Agreement) public agreements;
+    uint256 public agreementCounter;
+    
+    event AgreementCreated(uint256 indexed agreementId, bytes32 propertyId, address owner, address renter);
+    event AgreementCancelled(uint256 indexed agreementId);
+    event AgreementCompleted(uint256 indexed agreementId);
+    
+    modifier onlyOwner(uint256 _agreementId) {
+        require(agreements[_agreementId].owner == msg.sender, "Only the property owner can call this function");
+        _;
+    }
+    
+    modifier onlyRenter(uint256 _agreementId) {
+        require(agreements[_agreementId].renter == msg.sender, "Only the renter can call this function");
+        _;
+    }
+    
+    modifier agreementExists(uint256 _agreementId) {
+        require(_agreementId < agreementCounter, "Agreement does not exist");
+        _;
+    }
+    
+    function createAgreement(
+        bytes32 _propertyId,
+        address _renter,
+        uint256 _startDate,
+        uint256 _endDate,
+        uint256 _dailyRate
+    ) external returns (uint256) {
+        require(_startDate < _endDate, "Invalid dates");
+        require(_renter != address(0), "Invalid renter address");
+        
+        uint256 agreementId = agreementCounter++;
+        
+        agreements[agreementId] = Agreement({
+            propertyId: _propertyId,
+            owner: msg.sender,
+            renter: _renter,
+            startDate: _startDate,
+            endDate: _endDate,
+            dailyRate: _dailyRate,
+            isActive: true,
+            isCompleted: false,
+            isCancelled: false
+        });
+        
+        emit AgreementCreated(agreementId, _propertyId, msg.sender, _renter);
+        
+        return agreementId;
+    }
+    
+    function cancelAgreement(uint256 _agreementId) 
+        external 
+        agreementExists(_agreementId)
+        onlyOwner(_agreementId) 
+    {
+        Agreement storage agreement = agreements[_agreementId];
+        require(agreement.isActive, "Agreement is not active");
+        require(!agreement.isCompleted, "Agreement is already completed");
+        require(!agreement.isCancelled, "Agreement is already cancelled");
+        
+        agreement.isActive = false;
+        agreement.isCancelled = true;
+        
+        emit AgreementCancelled(_agreementId);
+    }
+    
+    function completeAgreement(uint256 _agreementId) 
+        external 
+        agreementExists(_agreementId)
+        onlyRenter(_agreementId) 
+    {
+        Agreement storage agreement = agreements[_agreementId];
+        require(agreement.isActive, "Agreement is not active");
+        require(!agreement.isCompleted, "Agreement is already completed");
+        require(!agreement.isCancelled, "Agreement is cancelled");
+        
+        agreement.isActive = false;
+        agreement.isCompleted = true;
+        
+        emit AgreementCompleted(_agreementId);
+    }
+    
+    function getAgreement(uint256 _agreementId) 
+        external 
+        view 
+        agreementExists(_agreementId)
+        returns (
+            bytes32 propertyId,
+            address owner,
+            address renter,
+            uint256 startDate,
+            uint256 endDate,
+            uint256 dailyRate,
+            bool isActive,
+            bool isCompleted,
+            bool isCancelled
+        ) 
+    {
+        Agreement memory agreement = agreements[_agreementId];
+        
+        return (
+            agreement.propertyId,
+            agreement.owner,
+            agreement.renter,
+            agreement.startDate,
+            agreement.endDate,
+            agreement.dailyRate,
+            agreement.isActive,
+            agreement.isCompleted,
+            agreement.isCancelled
+        );
+    }
+    
+    function getAgreementsByProperty(bytes32 _propertyId) 
+        external 
+        view 
+        returns (uint256[] memory) 
+    {
+        // Count matching agreements first
+        uint256 count = 0;
+        for (uint256 i = 0; i < agreementCounter; i++) {
+            if (agreements[i].propertyId == _propertyId) {
+                count++;
+            }
+        }
+        
+        // Create array of appropriate size
+        uint256[] memory result = new uint256[](count);
+        
+        // Fill the array
+        uint256 index = 0;
+        for (uint256 i = 0; i < agreementCounter; i++) {
+            if (agreements[i].propertyId == _propertyId) {
+                result[index] = i;
+                index++;
+            }
+        }
+        
+        return result;
+    }
+}
+
+// EscrowPayment.sol
+pragma solidity ^0.8.0;
+
+import "./RentalAgreement.sol";
+
+contract EscrowPayment {
+    struct Escrow {
+        uint256 agreementId;
+        uint256 amount;
+        bool isReleased;
+        bool isRefunded;
+    }
+    
+    mapping(uint256 => Escrow) public escrows;
+    RentalAgreement public rentalAgreement;
+    
+    event EscrowDeposited(uint256 indexed agreementId, address renter, uint256 amount);
+    event EscrowReleased(uint256 indexed agreementId, address owner, uint256 amount);
+    event EscrowRefunded(uint256 indexed agreementId, address renter, uint256 amount);
+    
+    constructor(address _rentalAgreementAddress) {
+        rentalAgreement = RentalAgreement(_rentalAgreementAddress);
+    }
+    
+    function depositEscrow(uint256 _agreementId) external payable {
+        // Get agreement details
+        (
+            ,
+            address owner,
+            address renter,
+            uint256 startDate,
+            uint256 endDate,
+            uint256 dailyRate,
+            bool isActive,
+            bool isCompleted,
+            bool isCancelled
+        ) = rentalAgreement.getAgreement(_agreementId);
+        
+        require(msg.sender == renter, "Only the renter can deposit escrow");
+        require(isActive, "Agreement is not active");
+        require(!isCompleted, "Agreement is already completed");
+        require(!isCancelled, "Agreement is cancelled");
+        
+        // Calculate required amount
+        uint256 durationDays = (endDate - startDate) / 86400; // 86400 seconds in a day
+        uint256 requiredAmount = durationDays * dailyRate;
+        
+        require(msg.value >= requiredAmount, "Insufficient escrow amount");
+        
+        // Store escrow details
+        escrows[_agreementId] = Escrow({
+            agreementId: _agreementId,
+            amount: msg.value,
+            isReleased: false,
+            isRefunded: false
+        });
+        
+        emit EscrowDeposited(_agreementId, renter, msg.value);
+    }
+    
+    function releaseEscrow(uint256 _agreementId) external {
+        // Get agreement details
+        (
+            ,
+            address owner,
+            address renter,
+            ,
+            ,
+            ,
+            bool isActive,
+            ,
+            bool isCancelled
+        ) = rentalAgreement.getAgreement(_agreementId);
+        
+        require(msg.sender == renter, "Only the renter can release escrow");
+        require(!isCancelled, "Agreement is cancelled");
+        
+        Escrow storage escrow = escrows[_agreementId];
+        require(escrow.amount >

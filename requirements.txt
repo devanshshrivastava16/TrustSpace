@@ -1,0 +1,8 @@
+streamlit==1.32.0
+streamlit-webrtc==0.50.1
+web3==6.15.1
+Pillow==10.2.0
+opencv-python-headless==4.9.0.80
+av==11.0.0
+PyJWT==2.8.0
+python-dotenv==1.0.1 

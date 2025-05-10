@@ -1,0 +1,179 @@
+// Continuing EscrowPayment.sol
+        require(escrow.amount > 0, "No escrow deposited");
+        require(!escrow.isReleased, "Escrow already released");
+        require(!escrow.isRefunded, "Escrow already refunded");
+        
+        // Mark as released
+        escrow.isReleased = true;
+        
+        // Transfer funds to owner
+        (bool success, ) = payable(owner).call{value: escrow.amount}("");
+        require(success, "Transfer failed");
+        
+        emit EscrowReleased(_agreementId, owner, escrow.amount);
+    }
+    
+    function refundEscrow(uint256 _agreementId) external {
+        // Get agreement details
+        (
+            ,
+            address owner,
+            address renter,
+            ,
+            ,
+            ,
+            ,
+            ,
+            bool isCancelled
+        ) = rentalAgreement.getAgreement(_agreementId);
+        
+        require(msg.sender == owner, "Only the owner can refund escrow");
+        require(isCancelled, "Agreement must be cancelled for refund");
+        
+        Escrow storage escrow = escrows[_agreementId];
+        require(escrow.amount > 0, "No escrow deposited");
+        require(!escrow.isReleased, "Escrow already released");
+        require(!escrow.isRefunded, "Escrow already refunded");
+        
+        // Mark as refunded
+        escrow.isRefunded = true;
+        
+        // Transfer funds back to renter
+        (bool success, ) = payable(renter).call{value: escrow.amount}("");
+        require(success, "Transfer failed");
+        
+        emit EscrowRefunded(_agreementId, renter, escrow.amount);
+    }
+    
+    function getEscrowStatus(uint256 _agreementId) 
+        external 
+        view 
+        returns (
+            uint256 amount,
+            bool isReleased,
+            bool isRefunded
+        ) 
+    {
+        Escrow memory escrow = escrows[_agreementId];
+        
+        return (
+            escrow.amount,
+            escrow.isReleased,
+            escrow.isRefunded
+        );
+    }
+}
+
+// ReviewSystem.sol
+pragma solidity ^0.8.0;
+
+contract ReviewSystem {
+    struct Review {
+        bytes32 propertyId;
+        address reviewer;
+        uint8 rating;
+        bytes32 reviewHash;
+        uint256 timestamp;
+    }
+    
+    // Mapping from property ID to all reviews
+    mapping(bytes32 => Review[]) public propertyReviews;
+    
+    // Mapping from property ID to reviewer address to bool (indicates if user has reviewed)
+    mapping(bytes32 => mapping(address => bool)) public hasReviewed;
+    
+    event ReviewSubmitted(bytes32 indexed propertyId, address indexed reviewer, uint8 rating, bytes32 reviewHash);
+    
+    function submitReview(
+        bytes32 _propertyId,
+        uint8 _rating,
+        bytes32 _reviewHash
+    ) external {
+        require(_rating >= 1 && _rating <= 5, "Rating must be between 1 and 5");
+        
+        // Prevent multiple reviews from same user for same property
+        require(!hasReviewed[_propertyId][msg.sender], "You have already reviewed this property");
+        
+        // Create review
+        Review memory newReview = Review({
+            propertyId: _propertyId,
+            reviewer: msg.sender,
+            rating: _rating,
+            reviewHash: _reviewHash,
+            timestamp: block.timestamp
+        });
+        
+        // Add to reviews array
+        propertyReviews[_propertyId].push(newReview);
+        
+        // Mark user as having reviewed this property
+        hasReviewed[_propertyId][msg.sender] = true;
+        
+        emit ReviewSubmitted(_propertyId, msg.sender, _rating, _reviewHash);
+    }
+    
+    function getPropertyReviewCount(bytes32 _propertyId) external view returns (uint256) {
+        return propertyReviews[_propertyId].length;
+    }
+    
+    function getPropertyReview(bytes32 _propertyId, uint256 _index) 
+        external 
+        view 
+        returns (
+            address reviewer,
+            uint8 rating,
+            bytes32 reviewHash,
+            uint256 timestamp
+        ) 
+    {
+        require(_index < propertyReviews[_propertyId].length, "Review index out of bounds");
+        
+        Review memory review = propertyReviews[_propertyId][_index];
+        
+        return (
+            review.reviewer,
+            review.rating,
+            review.reviewHash,
+            review.timestamp
+        );
+    }
+    
+    function getPropertyAverageRating(bytes32 _propertyId) external view returns (uint8) {
+        if (propertyReviews[_propertyId].length == 0) {
+            return 0;
+        }
+        
+        uint256 total = 0;
+        
+        for (uint256 i = 0; i < propertyReviews[_propertyId].length; i++) {
+            total += propertyReviews[_propertyId][i].rating;
+        }
+        
+        return uint8(total / propertyReviews[_propertyId].length);
+    }
+    
+    function verifyReview(
+        bytes32 _propertyId,
+        address _reviewer,
+        uint8 _rating,
+        bytes32 _reviewHash
+    ) external view returns (bool) {
+        // Check if reviewer has submitted a review for this property
+        if (!hasReviewed[_propertyId][_reviewer]) {
+            return false;
+        }
+        
+        // Find and verify the review
+        for (uint256 i = 0; i < propertyReviews[_propertyId].length; i++) {
+            Review memory review = propertyReviews[_propertyId][i];
+            
+            if (review.reviewer == _reviewer && 
+                review.rating == _rating && 
+                review.reviewHash == _reviewHash) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+}

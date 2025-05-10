@@ -1,0 +1,32 @@
+property_rental_platform/
+├── app.py                   # Main Streamlit application
+├── pages/                   # Streamlit multipage app structure
+│   ├── home.py              # Homepage/landing page
+│   ├── login.py             # Authentication page
+│   ├── profile.py           # User profile management
+│   ├── listings.py          # Browse property listings
+│   ├── property_detail.py   # Property details and booking
+│   ├── live_verification.py # Live video verification
+│   ├── my_properties.py     # Property owner dashboard
+│   ├── my_bookings.py       # Renter's booking management
+│   └── wallet.py            # Blockchain wallet and transactions
+├── data/                    # JSON data storage
+│   ├── users.json           # User data
+│   ├── properties.json      # Property listings
+│   ├── bookings.json        # Booking records
+│   └── reviews.json         # User reviews
+├── blockchain/              # Blockchain integration
+│   ├── contracts/           # Solidity smart contracts
+│   │   ├── RentalAgreement.sol  # Rental agreement contract
+│   │   ├── EscrowPayment.sol    # Escrow payment contract
+│   │   └── ReviewSystem.sol     # Decentralized reviews
+│   └── web3_utils.py        # Utilities for interacting with EduChain
+├── utils/
+│   ├── auth.py              # Authentication helpers
+│   ├── verification.py      # KYC and property verification
+│   ├── image_analysis.py    # AI-based image verification
+│   ├── video_stream.py      # WebRTC video streaming
+│   └── database.py          # JSON file operations
+└── static/                  # Static assets
+    ├── css/
+    └── images/
